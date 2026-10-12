@@ -1,0 +1,28 @@
+# Repository-owned role contract for the manual workflow.
+# This is not a native Herdr config file; Herdr does not load this schema.
+schema_version: 1
+workflow:
+  mode: manual
+  worktree_required: true
+  human_approval_required_before:
+    - implementation_after_plan
+    - commit
+    - push
+    - pull_request_creation
+    - merge
+roles:
+  planner:
+    agent: claude
+    prompt: prompts/claude-orchestrator.md
+    permission: read_only_plan
+    may_edit: false
+  implementer:
+    agent: codex
+    prompt: prompts/codex-implementer.md
+    permission: human_approved_write_in_worktree
+    may_edit: true
+  reviewer:
+    agent: claude
+    prompt: prompts/claude-reviewer.md
+    permission: read_only
+    may_edit: false

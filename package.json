@@ -1,0 +1,12 @@
+{
+  "name": "codex-test-agent-workflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dependency-free smoke checks for the codex-test repository CI workflow.",
+  "scripts": {
+    "lint": "node --check scripts/validate-docs.js && node --check test/workflow.test.js",
+    "test": "node --test",
+    "build": "node scripts/validate-docs.js"
+  },
+  "type": "module"
+}
