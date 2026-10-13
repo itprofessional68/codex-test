@@ -78,3 +78,14 @@ test('guide points to the plan template and keeps task plans out of Git', () => 
   assert.match(readme, /Keep the task-specific `PLAN\.md` out of commits/);
   assert.match(readFileSync('.gitignore', 'utf8'), /^\/PLAN\.md$/m);
 });
+
+test('guide documents independent review and the limited solo-pilot bypass', () => {
+  const readme = readFileSync('README.md', 'utf8');
+  assert.match(readme, /author cannot approve their own PR/i);
+  assert.match(readme, /bypass[^\n]*is not an approval/i);
+  assert.match(readme, /pull-request-only bypass/i);
+  assert.match(readme, /Remove the bypass immediately after the merge/i);
+  assert.match(readme, /bypass list is empty/i);
+  assert.match(readme, /one-approval requirement is still active/i);
+  assert.match(readme, /does not authorize direct pushes to `main`, agent merges, or permanently removing the independent-review requirement/i);
+});
