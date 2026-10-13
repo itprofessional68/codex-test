@@ -115,7 +115,7 @@ git commit -m 'Add AI agent policy and PR validation'
 git push
 ```
 
-In GitHub: repository **Settings > Rules > Rulesets** (or branch protection), target `main`, require pull request and approvals, require passing `validate` check once its first run succeeds, block force pushes/deletions, and restrict bypass privileges. Confirm protections actually apply to your repository plan and organization settings. Enable dependency alerts and secret scanning where available.
+In GitHub: repository **Settings > Rules > Rulesets** (or branch protection), target `main`, require pull request and approvals, require passing `validate` check once its first run succeeds, block force pushes/deletions, and restrict bypass privileges. Confirm protections actually apply to your repository plan and organization settings. Enable dependency alerts and secret scanning where available. See [Section 9](#9-pull-request-review-and-solo-pilot-bypass) for the normal review path and the limited solo-pilot exception.
 
 ## 4. Create one isolated worktree
 
@@ -213,7 +213,36 @@ When building a dispatcher, enforce role permissions in its agent launch configu
 - [ ] Independent Claude review produces actionable findings or approval recommendation.
 - [ ] GitHub Actions validates the draft PR.
 - [ ] No agent can merge or deploy without explicit human authorization.
+- [ ] Any solo-pilot bypass was removed after merge, and the one-approval requirement was verified.
 - [ ] Usage/costs have been reviewed before scheduling.
+
+## 9. Pull request review and solo-pilot bypass
+
+### Normal review path
+
+A collaborator other than the pull request author reviews and approves the PR. The author cannot approve their own PR, and the `main` ruleset requires one approval before merge.
+
+### Approval and bypass are different
+
+An approval is a review that satisfies the ruleset's approval requirement. A bypass is separate permission to merge despite applicable rules; it is not an approval. A pull-request-only bypass limits the bypass actor to changes made through pull requests, but it can bypass every rule enforced by that ruleset, including the approval count and required status checks. Keep the bypass list empty by default.
+
+### Limited solo-pilot procedure
+
+For a human-operated solo-maintainer pilot only:
+
+1. A human temporarily adds their own account as a pull-request-only bypass actor.
+2. Verify the PR's `validate` CI check passes.
+3. Manually review the complete PR diff.
+4. The human merges the PR using the bypass.
+5. Remove the bypass immediately after the merge.
+
+### Verify cleanup
+
+After removal, confirm the ruleset's bypass list is empty and the one-approval requirement is still active.
+
+### Limits
+
+This exception does not authorize direct pushes to `main`, agent merges, or permanently removing the independent-review requirement. It applies only to this limited solo-maintainer pilot and does not extend to other repositories.
 
 ## Official reference links
 
