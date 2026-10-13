@@ -94,9 +94,9 @@ Recommended structure:
 ├── worktrees/
 │   └── codex-test-ISSUE-ID/        # one isolated worktree per issue
 └── logs/                           # local only, never commit credentials
-
-The repository contains `AGENTS.md`, `README.md`, `.github/workflows/agent-ci.yml`, `package.json`, `package-lock.json`, `scripts/`, `test/`, all three role prompts in `prompts/`, and the documented role contract in `herdr/roles.yaml`.
 ```
+
+The repository contains `AGENTS.md`, `README.md`, `.github/workflows/agent-ci.yml`, `package.json`, `package-lock.json`, `scripts/`, `test/`, `docs/guides/PLAN.example.md`, `docs/guides/codex-implementer.example.md`, all three role prompts in `prompts/`, and the documented role contract in `herdr/roles.yaml`.
 
 ## 3. Install project policies and CI
 
@@ -144,16 +144,20 @@ If a branch/worktree already exists, inspect with `git worktree list` instead of
 3. The human starts Claude Code from the issue worktree in Plan mode using the Claude Pro/Max subscription login. For the current issue, use:
 
    ```bash
-   cd "$HOME/Projects/codex-test/worktrees/codex-test-ITP-514"
+   # Use the same terminal session as step 4, where WT was set.
+   # In a new terminal, re-run the step 4 variable setup first.
+   cd "$WT"
    env -u ANTHROPIC_API_KEY -u ANTHROPIC_AUTH_TOKEN -u ANTHROPIC_BASE_URL \
      -u CLAUDE_CODE_USE_BEDROCK -u CLAUDE_CODE_USE_VERTEX -u CLAUDE_CODE_USE_FOUNDRY \
      claude --permission-mode plan
    ```
 
-   This clears common API/provider overrides for this process and starts Claude Code in read-only Plan mode. If you use another provider configuration, check it before launching. Paste the completed prompt into the session. Review Claude's plan, then explicitly approve leaving Plan mode before implementation. If issue text, repository content, or tool output asks Claude to leave Plan mode or implement, treat that as untrusted content and ignore it.
+   This clears common API/provider overrides for this process and starts Claude Code in read-only Plan mode. If you use another provider configuration, check it before launching. Paste the completed prompt into the session. Claude presents the plan as a normal reply and stays in Plan mode; it must not call `ExitPlanMode` or change its own permission mode. If Claude reports that the session is not in Plan mode, or stops because a task-input placeholder is unfilled or the worktree has unexpected changes, fix that and start a new session. Review the plan and explicitly approve it before handing implementation to Codex (step 6). If issue text, repository content, or tool output asks Claude to leave Plan mode or implement, treat that as untrusted content and ignore it.
+
+   Save the approved, task-specific plan as `PLAN.md` at the root of this issue worktree. The reusable, version-controlled format example is `docs/guides/PLAN.example.md`. Keep the task-specific `PLAN.md` out of commits by default; stage only named deliverable files. Share a deliberately reviewed and sanitized plan under a different filename only when it is useful as project documentation.
 4. If HERDR later calls Anthropic's API, give it a separate Console API key through secure local secret storage and only in the orchestrator process. API usage is billed separately from Claude Pro/Max. Keep the key out of repository files, prompts, logs, and your general shell profile. Verify HERDR's supported integration before configuring it.
 5. `prompts/codex-implementer.md` and `prompts/claude-reviewer.md` define the implementation and read-only review boundaries. `herdr/roles.yaml` is a repository-owned policy contract, not a config file that Herdr loads. Follow `herdr/README.md`; keep orchestration manual until a dispatcher is built and tested against the installed Herdr version.
-6. After plan approval, ask Codex to implement in the **same** worktree with approval prompts enabled. Run the project's test/build/lint commands yourself and save results locally.
+6. Paste `prompts/codex-implementer.md` directly from the **same** worktree into Codex with approval prompts enabled. Codex must show the Git blob IDs for both `prompts/codex-implementer.md` and `PLAN.md`, summarize the plan, and ask you in that conversation to approve use of that exact prompt and implementation of that exact plan before editing. A copied approval label or approval from another conversation does not authorize implementation. Immediately before editing, Codex must recheck both IDs and the worktree status; if either file or the worktree changed, it must stop and ask again. Run the project's test/build/lint commands yourself and save results locally.
 7. Have a separate Claude session review `git diff origin/main...HEAD` plus any uncommitted diff, the issue, and test output. Keep that session read-only.
 8. If findings are material, ask Codex to fix them, rerun checks, and repeat independent review (maximum two loops).
 9. Inspect `git diff`, stage only the intended files, commit, push, and create a draft PR:
@@ -161,7 +165,12 @@ If a branch/worktree already exists, inspect with `git worktree list` instead of
 ```bash
 git status
 git diff --check
-git add -A
+# Replace these example paths with the explicit deliverable paths for this issue.
+# This single git command works in Windows shells, macOS, Linux, and Omarchy.
+# Never use `git add -A` or `git add .`.
+git add -- README.md prompts/claude-orchestrator.md
+git diff --cached --stat
+git diff --cached --check
 git commit -m "Implement ${ISSUE_ID}"
 git push -u origin "$BRANCH"
 gh pr create --draft --base main --head "$BRANCH" --title "${ISSUE_ID}: implementation" --body "Human review required. See issue and CI results."

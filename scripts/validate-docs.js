@@ -9,6 +9,8 @@ const requiredFiles = [
   'prompts/claude-reviewer.md',
   'herdr/README.md',
   'herdr/roles.yaml',
+  'docs/guides/PLAN.example.md',
+  'docs/guides/codex-implementer.example.md',
   'package.json',
   'package-lock.json',
   'test/workflow.test.js',

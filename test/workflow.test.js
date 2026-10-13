@@ -13,6 +13,8 @@ test('CI workflow inputs and scripts exist', () => {
     'herdr/README.md',
     'herdr/roles.yaml',
     'scripts/validate-docs.js',
+    'docs/guides/PLAN.example.md',
+    'docs/guides/codex-implementer.example.md',
   ]) {
     assert.equal(existsSync(file), true, `${file} should exist`);
   }
@@ -29,7 +31,7 @@ test('role prompts preserve the planner, implementer, reviewer boundaries', () =
   const roles = readFileSync('herdr/roles.yaml', 'utf8');
 
   assert.match(implementer, /approved plan/i);
-  assert.match(implementer, /Stop for human approval before committing/i);
+  assert.match(implementer, /human approval before committing/i);
   assert.match(reviewer, /Do not edit files or change Git state/i);
   assert.match(herdrReadme, /not a native Herdr configuration file/i);
   for (const role of ['planner', 'implementer', 'reviewer']) {
@@ -61,4 +63,18 @@ test('guide explains the subscription/API split and role asset locations', () =>
   assert.match(readme, /prompts\/claude-reviewer\.md/);
   assert.match(readme, /herdr\/roles\.yaml/);
   assert.match(readme, /not a native Herdr configuration file/i);
+});
+
+test('guide stages explicit paths and macOS metadata is ignored', () => {
+  const readme = readFileSync('README.md', 'utf8');
+  assert.doesNotMatch(readme, /^git add -A$/m);
+  assert.match(readme, /^git diff --cached --check$/m);
+  assert.match(readFileSync('.gitignore', 'utf8'), /^\.DS_Store$/m);
+});
+
+test('guide points to the plan template and keeps task plans out of Git', () => {
+  const readme = readFileSync('README.md', 'utf8');
+  assert.match(readme, /docs\/guides\/PLAN\.example\.md/);
+  assert.match(readme, /Keep the task-specific `PLAN\.md` out of commits/);
+  assert.match(readFileSync('.gitignore', 'utf8'), /^\/PLAN\.md$/m);
 });
