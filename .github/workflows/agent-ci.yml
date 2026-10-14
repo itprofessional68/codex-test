@@ -32,5 +32,9 @@ jobs:
         run: npm run lint
       - name: Test
         run: npm test
+      - name: Intentional failing-check probe
+        run: |
+          echo 'ITP-517 deliberate failing validate probe'
+          exit 1
       - name: Build
         run: npm run build
