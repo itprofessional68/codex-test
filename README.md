@@ -115,7 +115,7 @@ git commit -m 'Add AI agent policy and PR validation'
 git push
 ```
 
-In GitHub: repository **Settings > Rules > Rulesets** (or branch protection), target `main`, require pull request and approvals, require passing `validate` check once its first run succeeds, block force pushes/deletions, and restrict bypass privileges. Confirm protections actually apply to your repository plan and organization settings. Enable dependency alerts and secret scanning where available. See [Section 9](#9-pull-request-review-and-solo-pilot-bypass) for the normal review path and the limited solo-pilot exception.
+In GitHub: repository **Settings > Rules > Rulesets**, target `main`, require pull requests, require the `validate` status check after it has run successfully at least once, and block force pushes and deletions. Keep PR/CI protections in a ruleset with no solo bypass. Put the one-approval requirement in a separate review-only ruleset. For a solo-maintainer workflow, add the maintainer as a permanent **For pull requests only** bypass actor only to that review-only ruleset. Confirm that the rulesets apply to your repository plan and that their combined behavior matches this policy. Enable dependency alerts and secret scanning where available. See [Section 9](#9-pull-request-review-and-solo-maintainer-exception) for the normal review path and solo-maintainer exception.
 
 ## 4. Create one isolated worktree
 
@@ -206,43 +206,55 @@ When building a dispatcher, enforce role permissions in its agent launch configu
 
 - [ ] GitHub, Codex, Claude and HERDR are installed and authenticated where needed.
 - [ ] Copilot works in the IDE (optional front end).
-- [ ] Main branch protection and human approval are enforced.
+- [ ] Active rulesets require PRs and passing `validate`; the PR/CI ruleset has no solo bypass.
+- [ ] The independent-review requirement is in a separate review-only ruleset.
 - [ ] One issue has its own worktree.
 - [ ] Claude produces a plan without editing files.
 - [ ] Codex implements and tests within the worktree.
 - [ ] Independent Claude review produces actionable findings or approval recommendation.
 - [ ] GitHub Actions validates the draft PR.
 - [ ] No agent can merge or deploy without explicit human authorization.
-- [ ] Any solo-pilot bypass was removed after merge, and the one-approval requirement was verified.
+- [ ] If using the solo-maintainer exception, the permanent PR-only bypass is scoped to the review-only ruleset and the combined ruleset behavior has been verified.
 - [ ] Usage/costs have been reviewed before scheduling.
 
-## 9. Pull request review and solo-pilot bypass
+## 9. Pull request review and solo-maintainer exception
 
-### Normal review path
+### Keep the rulesets separate
 
-A collaborator other than the pull request author reviews and approves the PR. The author cannot approve their own PR, and the `main` ruleset requires one approval before merge.
+An approval and a bypass are different. A bypass does not create an approval. GitHub combines rules from all active rulesets that target a branch, and a bypass actor bypasses the rules in the ruleset where that actor is listed. Keep the PR and CI requirements in a ruleset that does not list the solo maintainer as a bypass actor. Put the one-approval requirement in a separate review-only ruleset. This lets a solo maintainer bypass the approval requirement while the PR and required status check continue to apply.
 
-### Approval and bypass are different
+### Normal independent-review path
 
-An approval is a review that satisfies the ruleset's approval requirement. A bypass is separate permission to merge despite applicable rules; it is not an approval. A pull-request-only bypass limits the bypass actor to changes made through pull requests, but it can bypass every rule enforced by that ruleset, including the approval count and required status checks. Keep the bypass list empty by default.
+1. Open a PR and wait for `validate` to pass.
+2. A collaborator other than the PR author reviews the complete diff and submits an approval.
+3. Resolve review comments and confirm the required checks still pass.
+4. The human merges the PR through the normal merge path.
 
-### Limited solo-pilot procedure
+### Solo-maintainer path
 
-For a human-operated solo-maintainer pilot only:
+For a solo-maintainer pilot, configure the maintainer as a permanent **For pull requests only** bypass actor on the review-only ruleset. Do not add the maintainer to the PR/CI ruleset's bypass list. This removes the repeated temporary settings change while keeping the exception limited to PR-based changes and the approval rule.
 
-1. A human temporarily adds their own account as a pull-request-only bypass actor.
-2. Verify the PR's `validate` CI check passes.
-3. Manually review the complete PR diff.
-4. The human merges the PR using the bypass.
-5. Remove the bypass immediately after the merge.
+For every solo PR:
 
-### Verify cleanup
+1. Confirm the PR is open against `main` and `validate` passes.
+2. Manually review the complete diff, including generated files and the final staged changes. Read the relevant tests and CI output.
+3. Address findings and wait for CI to pass again after any changes.
+4. Merge the PR using the review-only bypass. GitHub should still enforce the PR/CI ruleset.
+5. Record in the PR description or review comment that this was a solo-maintainer self-review exception, not an independent approval.
 
-After removal, confirm the ruleset's bypass list is empty and the one-approval requirement is still active.
+### Verify the active rulesets
 
-### Limits
+Before relying on this setup, verify the active rulesets and their combined behavior:
 
-This exception does not authorize direct pushes to `main`, agent merges, or permanently removing the independent-review requirement. It applies only to this limited solo-maintainer pilot and does not extend to other repositories.
+- [ ] The PR/CI ruleset requires a pull request and the `validate` status check, blocks force pushes and deletions, and has no solo-maintainer bypass actor.
+- [ ] The review-only ruleset requires one approval and lists the maintainer as **For pull requests only**.
+- [ ] A safe test PR confirms the review-only bypass does not bypass the PR/CI requirements.
+
+If the repository plan or settings do not allow this separation, use a zero-approval solo configuration with required PR and CI rather than granting a broad bypass.
+
+When an independent reviewer becomes available, remove the solo bypass from the review-only ruleset and verify that one independent approval is required again. The solo exception never authorizes direct pushes to `main`, agent merges, or merging without a PR and successful required checks.
+
+GitHub references: [About rulesets and rule layering](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets) and [Creating a repository ruleset and configuring a pull-request-only bypass](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository).
 
 ## Official reference links
 
