@@ -9,7 +9,7 @@ concurrency:
   group: agent-ci-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  validate:
+  validate_missing_check_probe:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
