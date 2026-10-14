@@ -101,3 +101,7 @@ test('guide documents independent review and the solo-maintainer exception', () 
   assert.match(section, /When an independent reviewer becomes available, remove the solo bypass/i);
   assert.match(section, /never authorizes direct pushes to `main`, agent merges, or merging without a PR and successful required checks/i);
 });
+
+test('ITP-517 intentional failing-check probe (do not merge)', () => {
+  assert.equal(true, false, 'Intentional ITP-517 probe: validate must fail.');
+});
