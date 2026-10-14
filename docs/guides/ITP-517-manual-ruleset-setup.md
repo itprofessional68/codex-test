@@ -4,6 +4,8 @@ This guide records the rulesets verified for `itprofessional68/codex-test` durin
 
 ## Current verified rulesets
 
+**Read-back record (2026-10-14):** The maintainer reopened both rulesets in the GitHub repository UI at **Settings → Rules → Rulesets** and checked their saved rule and bypass settings. The read-back is also recorded in [ITP-517](https://linear.app/itprofessional/issue/ITP-517/configure-and-verify-solo-maintainer-github-rulesets). It confirmed the configurations below after the behavioral probes. This is a dated observation; verify the live settings again before relying on them.
+
 The ITP-517 read-back found two active repository rulesets targeting the default branch and `refs/heads/main`:
 
 ### Codex Test PR and CI Protection (ID `24935988`)
@@ -26,11 +28,11 @@ This is the configured solo-maintainer exception: the bypass is attached to the 
 
 These results are observations from ITP-517, not guarantees about every future PR or GitHub UI state:
 
-- A harmless documentation-only test PR passed `validate` and was merged using the review-only bypass.
-- An intentional failing-`validate` test PR remained blocked from merge.
-- A test PR with no required `validate` check remained blocked from merge.
+- [PR #6 — passing solo-path test](https://github.com/itprofessional68/codex-test/pull/6) passed `validate` and was merged using the review-only bypass. Its Actions run ID is not recorded in the available issue evidence.
+- [PR #8 — failing `validate` probe](https://github.com/itprofessional68/codex-test/pull/8) remained blocked from merge. [Actions run 38649556897](https://github.com/itprofessional68/codex-test/actions/runs/38649556897) records the failing `validate` run.
+- [PR #7 — missing `validate` probe](https://github.com/itprofessional68/codex-test/pull/7) remained blocked from merge. [Actions run 38649551357](https://github.com/itprofessional68/codex-test/actions/runs/38649551357) records the successful renamed job while the required `validate` context was absent.
 - For the failing and missing-check PRs, GitHub did not expose the review-only bypass merge control. No bypass merge was submitted, and neither PR was merged; both were closed unmerged after verification.
-- The rulesets were read back after the tests and were unchanged.
+- The rulesets were read back after the tests on 2026-10-14 using the GitHub repository UI (**Settings → Rules → Rulesets**) and were unchanged.
 
 The failed and missing-check tests show that those PRs could not be merged in the tested state. Because GitHub did not expose the bypass control, they do not demonstrate what would happen if a different UI or API path attempted to invoke the review-only bypass while CI was unsatisfied. Do not infer that such a bypass attempt was made.
 
