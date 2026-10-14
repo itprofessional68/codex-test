@@ -79,13 +79,25 @@ test('guide points to the plan template and keeps task plans out of Git', () => 
   assert.match(readFileSync('.gitignore', 'utf8'), /^\/PLAN\.md$/m);
 });
 
-test('guide documents independent review and the limited solo-pilot bypass', () => {
+test('guide documents independent review and the solo-maintainer exception', () => {
   const readme = readFileSync('README.md', 'utf8');
-  assert.match(readme, /author cannot approve their own PR/i);
-  assert.match(readme, /bypass[^\n]*is not an approval/i);
-  assert.match(readme, /pull-request-only bypass/i);
-  assert.match(readme, /Remove the bypass immediately after the merge/i);
-  assert.match(readme, /bypass list is empty/i);
-  assert.match(readme, /one-approval requirement is still active/i);
-  assert.match(readme, /does not authorize direct pushes to `main`, agent merges, or permanently removing the independent-review requirement/i);
+  const sectionHeading = '## 9. Pull request review and solo-maintainer exception';
+  const sectionStart = readme.indexOf(sectionHeading);
+  assert.notEqual(sectionStart, -1, 'README should contain the review policy section');
+  const nextSection = readme.indexOf('\n## ', sectionStart + sectionHeading.length);
+  const section = readme.slice(sectionStart, nextSection === -1 ? undefined : nextSection);
+
+  const setup = readme.split('\n').find((line) => line.startsWith('In GitHub:'));
+  assert.ok(setup, 'README should document the GitHub ruleset setup');
+  assert.match(setup, /PR\/CI protections in a ruleset with no solo bypass/i);
+  assert.match(setup, /one-approval requirement in a separate review-only ruleset/i);
+
+  assert.match(section, /A collaborator other than the PR author/i);
+  assert.match(section, /For pull requests only/);
+  assert.match(section, /does not list the solo maintainer as a bypass actor/i);
+  assert.match(section, /review-only ruleset/i);
+  assert.match(section, /PR\/CI ruleset requires a pull request and the `validate` status check.*has no solo-maintainer bypass actor/i);
+  assert.match(section, /self-review exception, not an independent approval/i);
+  assert.match(section, /When an independent reviewer becomes available, remove the solo bypass/i);
+  assert.match(section, /never authorizes direct pushes to `main`, agent merges, or merging without a PR and successful required checks/i);
 });
