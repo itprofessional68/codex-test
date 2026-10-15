@@ -101,3 +101,20 @@ test('guide documents independent review and the solo-maintainer exception', () 
   assert.match(section, /When an independent reviewer becomes available, remove the solo bypass/i);
   assert.match(section, /never authorizes direct pushes to `main`, agent merges, or merging without a PR and successful required checks/i);
 });
+
+test('ruleset guide documents the safe fallback without asserting live settings', () => {
+  const guide = readFileSync('docs/guides/ITP-517-manual-ruleset-setup.md', 'utf8');
+  const sectionHeading = '## Safe fallback: one approval and no bypass';
+  const sectionStart = guide.indexOf(sectionHeading);
+  assert.notEqual(sectionStart, -1, 'guide should contain the safe fallback section');
+  const nextSection = guide.indexOf('\n## ', sectionStart + sectionHeading.length);
+  const section = guide
+    .slice(sectionStart, nextSection === -1 ? undefined : nextSection)
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  assert.match(section, /Remove `itprofessional68` from the review-only ruleset's bypass list/);
+  assert.match(section, /Keep the review-only ruleset active with one required approving review/);
+  assert.match(section, /Keep the PR and CI ruleset active with its required PR, `validate`, branch-protection, and empty-bypass settings/);
+  assert.match(section, /Do not replace it with zero required approvals or a bypass on the PR and CI ruleset/);
+});
