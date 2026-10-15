@@ -28,7 +28,7 @@ This is the configured solo-maintainer exception: the bypass is attached to the 
 
 These results are observations from ITP-517, not guarantees about every future PR or GitHub UI state:
 
-- [PR #6 — passing solo-path test](https://github.com/itprofessional68/codex-test/pull/6) passed `validate` and was merged using the review-only bypass. Its Actions run ID is not recorded in the available issue evidence.
+- [PR #6 — passing solo-path test](https://github.com/itprofessional68/codex-test/pull/6) passed `validate` and was merged using the review-only bypass. [Actions run 38648657551](https://github.com/itprofessional68/codex-test/actions/runs/38648657551) records the passing run.
 - [PR #8 — failing `validate` probe](https://github.com/itprofessional68/codex-test/pull/8) remained blocked from merge. [Actions run 38649556897](https://github.com/itprofessional68/codex-test/actions/runs/38649556897) records the failing `validate` run.
 - [PR #7 — missing `validate` probe](https://github.com/itprofessional68/codex-test/pull/7) remained blocked from merge. [Actions run 38649551357](https://github.com/itprofessional68/codex-test/actions/runs/38649551357) records the successful renamed job while the required `validate` context was absent.
 - For the failing and missing-check PRs, GitHub did not expose the review-only bypass merge control. No bypass merge was submitted, and neither PR was merged; both were closed unmerged after verification.
